@@ -15,15 +15,13 @@ jobs:
       - name: Checkout target repo
         uses: actions/checkout@v4
         with:
-          ref: main 
+          ref: main
           fetch-depth: 0
-
-            w1249178256/xyzw_web_helper
 
       - name: Fork Sync
         uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.1
         with:
-          upstream_sync_repo: 'w1249178256/xyzw_web_helper'      # 修改为上游仓库
-          upstream_sync_branch: 'main'       # 修改为上游分支
-          target_sync_branch: 'main'         # 修改为你要同步的分支
+          upstream_sync_repo: 'w1249178256/xyzw_web_helper' # 上游仓库
+          upstream_sync_branch: 'main'                     # 上游分支
+          target_sync_branch: 'main'                       # 你要同步的分支
           target_repo_token: ${{ secrets.GITHUB_TOKEN }}
