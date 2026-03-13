@@ -1,40 +1,38 @@
-name: Upstream Sync
+name: Sync Upstream
 
 on:
   schedule:
-    - cron: '0 * * * *'      # 每小时自动运行一次
-  workflow_dispatch:        # 支持手动点击按钮运行
-    inputs:
-      sync_test_mode:
-        description: 'Fork Sync Test Mode'
-        type: boolean
-        default: false
+    - cron: '0 * * * *'      # 每小时自动运行
+  workflow_dispatch:        # 支持手动触发
 
 jobs:
-  sync_latest_from_upstream:
+  sync_task:
     runs-on: ubuntu-latest
-    name: Sync latest commits from upstream repo
-
     steps:
-    # 第一步：标准检出
-    - name: Checkout target repo
-      uses: actions/checkout@v4
-      with:
-        ref: main
-        persist-credentials: false
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # 必须显式使用 token 否则 push 会失败
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-    # 第二步：执行同步动作（严格匹配官方参数名）
-    - name: Sync upstream changes
-      id: sync
-      uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.1
-      with:
-        target_sync_branch: main
-        target_repo_token: ${{ secrets.GITHUB_TOKEN }}
-        upstream_sync_repo: w1249178256/xyzw_web_helper
-        upstream_sync_branch: main
-        # 测试模式跟随手动输入的开关
-        test_mode: ${{ inputs.sync_test_mode || false }}
-
-    # 第三步：输出结果记录（可选，方便你调试看日志）
-    - name: Show sync status
-      run: echo "是否有新提交同步: ${{ steps.sync.outputs.has_new_commits }}"
+      - name: Sync Logic
+        run: |
+          # 1. 配置身份
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          
+          # 2. 添加原仓库
+          git remote add upstream https://github.com/w1249178256/xyzw_web_helper.git
+          
+          # 3. 获取更新
+          git fetch upstream main
+          
+          # 4. 强制切换到 main
+          git checkout main
+          
+          # 5. 合并原仓库代码 (允许合并不相关的历史)
+          git merge upstream/main --allow-unrelated-histories --no-edit || (echo "Conflict detected" && exit 1)
+          
+          # 6. 推送到你自己的 origin
+          git push origin main
