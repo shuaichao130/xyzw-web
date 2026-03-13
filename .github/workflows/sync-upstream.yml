@@ -1,36 +1,25 @@
 name: Sync Upstream
-
-# 触发条件
 on:
   schedule:
-    - cron: '0 * * * *'      # 每小时的第 0 分钟自动执行
-  workflow_dispatch:        # 支持在 GitHub 页面手动点击按钮运行
+    - cron: '0 * * * *'
+  workflow_dispatch:
   push:
     paths:
-      - '.github/workflows/sync-upstream.yml' # 当你修改此脚本并推送时也会触发
-
+      - '.github/workflows/sync-upstream.yml'
 jobs:
   sync_latest_from_upstream:
     runs-on: ubuntu-latest
     steps:
-      # 1. 检出你自己的仓库代码
       - name: Checkout target repo
         uses: actions/checkout@v4
         with:
-          # 注意：如果你的主分支名是 master，请把下面的 main 改为 master
-          ref: main 
+          ref: main
           fetch-depth: 0
-
-      # 2. 运行同步工具将原作者代码合并到你的仓库
       - name: Sync upstream changes
         uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.1
         with:
           target_repo_token: ${{ secrets.GITHUB_TOKEN }}
-          upstream_repository: w1249178256/xyzw_web_helper  # 原作者仓库
-          upstream_branch: main                             # 原作者分支
-          target_branch: main                               # 你的分支
-          test_mode: false                                  # 设为 false 以正式执行合并
-
-      - name: Check for success
-        if: success()
-        run: echo "同步完成，Cloudflare Pages 应该会自动开始部署。"
+          upstream_sync_repo: w1249178256/xyzw_web_helper
+          upstream_sync_branch: main
+          target_sync_branch: main
+          test_mode: false
