@@ -1,27 +1,40 @@
-name: Sync Upstream
+name: Upstream Sync
 
 on:
   schedule:
-    - cron: '0 * * * *'      # 每小时自动运行
-  workflow_dispatch:        # 支持手动触发
-  push:
-    paths:
-      - '.github/workflows/sync-upstream.yml'
+    - cron: '0 * * * *'      # 每小时自动运行一次
+  workflow_dispatch:        # 支持手动点击按钮运行
+    inputs:
+      sync_test_mode:
+        description: 'Fork Sync Test Mode'
+        type: boolean
+        default: false
 
 jobs:
   sync_latest_from_upstream:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout target repo
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
+    name: Sync latest commits from upstream repo
 
-      - name: Fork Sync
-        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.1
-        with:
-          upstream_sync_repo: 'w1249178256/xyzw_web_helper' # 上游仓库
-          upstream_sync_branch: 'main'                     # 上游分支
-          target_sync_branch: 'main'                       # 你要同步的分支
-          target_repo_token: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+    # 第一步：标准检出
+    - name: Checkout target repo
+      uses: actions/checkout@v4
+      with:
+        ref: main
+        persist-credentials: false
+
+    # 第二步：执行同步动作（严格匹配官方参数名）
+    - name: Sync upstream changes
+      id: sync
+      uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.1
+      with:
+        target_sync_branch: main
+        target_repo_token: ${{ secrets.GITHUB_TOKEN }}
+        upstream_sync_repo: w1249178256/xyzw_web_helper
+        upstream_sync_branch: main
+        # 测试模式跟随手动输入的开关
+        test_mode: ${{ inputs.sync_test_mode || false }}
+
+    # 第三步：输出结果记录（可选，方便你调试看日志）
+    - name: Show sync status
+      run: echo "是否有新提交同步: ${{ steps.sync.outputs.has_new_commits }}"
