@@ -1,11 +1,13 @@
 name: Sync Upstream
+
 on:
   schedule:
-    - cron: '0 * * * *'
-  workflow_dispatch:
+    - cron: '0 * * * *'      # 每小时自动运行
+  workflow_dispatch:        # 支持手动触发
   push:
     paths:
       - '.github/workflows/sync-upstream.yml'
+
 jobs:
   sync_latest_from_upstream:
     runs-on: ubuntu-latest
@@ -13,13 +15,14 @@ jobs:
       - name: Checkout target repo
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: main 
           fetch-depth: 0
+
       - name: Sync upstream changes
         uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.1
         with:
           target_repo_token: ${{ secrets.GITHUB_TOKEN }}
-          upstream_sync_repo: w1249178256/xyzw_web_helper
-          upstream_sync_branch: main
-          target_sync_branch: main
-          test_mode: false
+          upstream_repository: w1249178256/xyzw_web_helper # 原作者仓库
+          upstream_branch: main                            # 原作者分支
+          target_branch: main                              # 你的分支
+          test_mode: false                                 # 正式同步
